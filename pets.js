@@ -1,13 +1,8 @@
 const fs = require('fs')
-
 const process = require('process')
 
-let parsedPets;
 
-// const read = fs.readFileSync('./pets.json')
-// const create = fs.create
-// const update = fs.update
-// const destroy = destroy
+
 
 function throwError(str){
     console.error(`Usage: node pets.js ${str}`)
