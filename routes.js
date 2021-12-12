@@ -1,6 +1,6 @@
 routes = {
     '/': function(req, res, pets) {
-          res.end('Try http://localhost:8000/pets');
+          res.end('Try GET http://localhost:8000/pets or POST http://localhost:8000/pets/AGE/KIND/NAME');
     },
 
     '/pets': function(req, res, pets) {
