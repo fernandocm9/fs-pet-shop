@@ -38,21 +38,24 @@ app.get('/pets/:id', function(req, res){
 
 
 app.post('/pets/:age/:kind/:name', function(req, res){
-    let addObj = {}
-    let age = req.params.age
-    let kind = req.params.kind
-    let name = req.params.name
-    addObj["age"] = parseInt(age)
-    addObj["kind"] = kind
-    addObj["name"] = name
+    let addObj = {
+    age: parseInt(req.params.age),
+    kind: req.params.kind,
+    name: req.params.name
+    }
     fs.readFile(dataPath, 'utf8', function(err, data){
         let pets = JSON.parse(data)
         pets.push(addObj)
-
-        res.setHeader('Content-Type', 'application/json')
-        res.statusCode = 200
-        res.send(JSON.stringify(addObj))
-        
+        let result = JSON.stringify(addObj)
+        fs.writeFile(dataPath, result, function(err){
+            if(err){
+                fiveHundErr(err, req, res, "Something was wrong with your body input")
+            } else {
+                res.setHeader('Content-Type', 'application/json')
+                res.statusCode = 200
+                res.send(result)
+            }
+        })
     })
 })
 
@@ -61,11 +64,10 @@ app.use(express.json())
 app.post('/pets', function(req, res){
     fs.readFile(dataPath, 'utf8', function(err, data){
         if(err){
-            console.error(err)
+            fiveHundErr(err, req, res, "Something was wrong with your body input")
         }
         let pets = JSON.parse(data)
         pets.push(req.body)
-        
         let jsonStr = JSON.stringify(pets)
         fs.writeFile(dataPath, jsonStr, function(err){
             if(err){
@@ -93,6 +95,6 @@ app.listen(PORT, function(req, res){
 
 function fiveHundErr(err, req, res, str){
     res.setHeader('Content-Type', 'text/plain')
-    res.statusCode = 500
-    res.json({"message": `${str}`})
+    res.sendStatus(500)
+    res.json({"message": str})
 }
