@@ -1,11 +1,17 @@
 import express from 'express'
 import {fileEditor} from './classes.js'
 import {pool} from '../petShop_DB/index.js'
+import path from 'path'
 const app = express()
 const PORT = 3000
 const pets = new fileEditor('./pets.json')
-
 app.use(express.json())
+app.use(express.static('../client'));
+
+app.get('/', (req, res)=>{
+    console.log(res)
+    res.render('index.html')
+})
 
 app.get('/pets', async (req,res)=>{
     try {
@@ -46,18 +52,31 @@ app.post('/pets', async (req, res)=>{
     
 })
 
-app.patch('/pets/:id', async (req, res)=>{
+app.patch('/pets/:id', async (req, res) => {
     try {
-        const values = [req.body.age, req.body.name, req.body.kind, req.params.id]
-        await pool.query(`UPDATE pets SET age = $1, name = $2, kind = $3 WHERE id = $4`, values)
-        res.json({
-            message: `pet ${req.params.id} was updated`
-        })
+        // Grab the ID from the params
+        const id = parseInt(req.params.id)
+        // get the resource as is
+        const pet = await pool.query("SELECT * FROM pets WHERE pet_id = $1", [id])
+        const petRows = pet.rows[0]
+        
+        const petUpdate = req.body
+        
+        // Make templating object
+        const templatePet = {
+            name: petUpdate.name || petRows.name,
+            age: petUpdate.age || petRows.age,
+            kind: petUpdate.kind || petRows.kind
+        }
 
-    } catch (err) {
-        fiveHundErr(err, res)
+
+        const updatePet = await pool.query("UPDATE pets SET name = $1, age = $2, kind = $3 WHERE pet_id = $4",
+            [templatePet.name, templatePet.age, templatePet.kind, id]
+        )
+        res.json(updatePet)
+    } catch (error) {
+        console.log(error.message)
     }
-    
 })
 
 app.delete('/pets/:id', async (req, res)=>{
